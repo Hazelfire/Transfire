@@ -7,6 +7,9 @@ class MockChildObject:
     def __init__(self, name):
         self.name = name
 
+    def greeting(self):
+        return "Woof Woof " + self.name
+
 
 class MockObject:
     def __init__(self):
@@ -60,4 +63,26 @@ class TestApiGatewayTransform(TestCase):
         self.assertEqual({
             'statusCode': 200,
             'body': '{"cats": 3, "dog": {"name": "Bojo"}}'
+        }, response)
+
+    def test_get_method(self):
+        response = self.transform.call({
+            'method': 'GET',
+            'path': '/dog/greeting'
+        })
+
+        self.assertEqual({
+            'statusCode': 200,
+            'body': '"Woof Woof Bojo"'
+        }, response)
+
+    def test_no_such_path(self):
+        response = self.transform.call({
+            'method': 'GET',
+            'path': '/nosuchresource'
+        })
+
+        self.assertEqual({
+            'statusCode': 400,
+            'body': '"No such resource"'
         }, response)

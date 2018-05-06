@@ -1,15 +1,23 @@
 import json
 
+
 class ApiGatewayTransform:
     def __init__(self, transform_object):
         self.transform_object = transform_object
 
     def call(self, event):
-        path_steps = event['path'].split("/")[1:]
+        path_steps = self.get_path_steps(event['path'])
+        response = self.call_path(path_steps, event, self.transform_object)
+        if response is not None:
+            return self.format_output(response)
+        else:
+            return self.format_output('No such resource', status_code=400)
+
+    def get_path_steps(self, event_path):
+        path_steps = event_path.split("/")[1:]
         if path_steps[-1] == "":
             del path_steps[-1]
-        response = self.call_path(path_steps, event, self.transform_object)
-        return self.format_output(response)
+        return path_steps
 
     def call_path(self, path_steps, event, object_part):
         if len(path_steps) == 0:
@@ -33,9 +41,9 @@ class ApiGatewayTransform:
             else:
                 return object_part
 
-    def format_output(self, response):
+    def format_output(self, response, status_code=200):
         return {
-            'statusCode': 200,
+            'statusCode': status_code,
             'body': self.serialise(response)
         }
 
