@@ -1,4 +1,4 @@
-import json
+from . import yaml
 
 
 class ApiGatewayTransform:
@@ -35,7 +35,7 @@ class ApiGatewayTransform:
                 return getattr(object_part, attribute)
 
     def run_method(self, event, object_part):
-        if event['method'] == 'GET':
+        if event['httpMethod'] == 'GET':
             if callable(object_part):
                 return object_part()
             else:
@@ -48,7 +48,7 @@ class ApiGatewayTransform:
         }
 
     def serialise(self, data):
-        return json.dumps(self.todict(data))
+        return yaml.dump(self.todict(data))
 
     def todict(self, obj):
         if isinstance(obj, dict):
@@ -58,7 +58,10 @@ class ApiGatewayTransform:
             return data
         elif hasattr(obj, "__dict__"):
             data = dict([(key, self.todict(value))
-                         for key, value in obj.__dict__.items()])
+                         for key, value in obj.__dict__.items()
+                         if not key.startswith("_")])
             return data
+        elif isinstance(obj, list):
+            return [self.todict(value) for value in obj]
         else:
             return obj
