@@ -23,7 +23,7 @@ class TestApiGatewayTransform(TestCase):
 
     def test_get_paramaters(self):
         response = self.transform.call({
-            'method': 'GET',
+            'httpMethod': 'GET',
             'path': '/cats'
         })
 
@@ -34,7 +34,7 @@ class TestApiGatewayTransform(TestCase):
 
     def test_recursive_get(self):
         response = self.transform.call({
-            'method': 'GET',
+            'httpMethod': 'GET',
             'path': '/dog/name'
         })
 
@@ -45,7 +45,7 @@ class TestApiGatewayTransform(TestCase):
 
     def test_get_object(self):
         response = self.transform.call({
-            'method': 'GET',
+            'httpMethod': 'GET',
             'path': '/dog'
         })
 
@@ -56,7 +56,7 @@ class TestApiGatewayTransform(TestCase):
 
     def test_get_root(self):
         response = self.transform.call({
-            'method': 'GET',
+            'httpMethod': 'GET',
             'path': '/'
         })
 
@@ -67,7 +67,7 @@ class TestApiGatewayTransform(TestCase):
 
     def test_get_method(self):
         response = self.transform.call({
-            'method': 'GET',
+            'httpMethod': 'GET',
             'path': '/dog/greeting'
         })
 
@@ -78,7 +78,7 @@ class TestApiGatewayTransform(TestCase):
 
     def test_no_such_path(self):
         response = self.transform.call({
-            'method': 'GET',
+            'httpMethod': 'GET',
             'path': '/nosuchresource'
         })
 

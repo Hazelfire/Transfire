@@ -1,5 +1,4 @@
-from . import yaml
-
+import json
 
 class ApiGatewayTransform:
     def __init__(self, transform_object):
@@ -48,7 +47,7 @@ class ApiGatewayTransform:
         }
 
     def serialise(self, data):
-        return yaml.dump(self.todict(data))
+        return json.dumps(self.todict(data))
 
     def todict(self, obj):
         if isinstance(obj, dict):
