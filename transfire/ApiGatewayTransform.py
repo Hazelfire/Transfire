@@ -6,6 +6,8 @@ class ApiGatewayTransform:
 
     def call(self, event):
         path_steps = event['path'].split("/")[1:]
+        if path_steps[-1] == "":
+            del path_steps[-1]
         response = self.call_path(path_steps, event, self.transform_object)
         return self.format_output(response)
 
@@ -34,5 +36,21 @@ class ApiGatewayTransform:
     def format_output(self, response):
         return {
             'statusCode': 200,
-            'body': json.dumps(response)
+            'body': self.serialise(response)
         }
+
+    def serialise(self, data):
+        return json.dumps(self.todict(data))
+
+    def todict(self, obj):
+        if isinstance(obj, dict):
+            data = {}
+            for (k, v) in obj.items():
+                data[k] = self.todict(v)
+            return data
+        elif hasattr(obj, "__dict__"):
+            data = dict([(key, self.todict(value))
+                         for key, value in obj.__dict__.items()])
+            return data
+        else:
+            return obj
