@@ -7,6 +7,7 @@ from datetime import datetime, date
 class MockChildObject:
     def __init__(self, name):
         self.name = name
+        self._hidden_parameter = "cant see me!!!"
 
     def greeting(self):
         return "Woof Woof " + self.name
@@ -22,6 +23,7 @@ class MockObject:
         self.cats = 3
         self.dog = MockChildObject("Bojo")
         self.time = MockTimeObject()
+        self.dogs = [MockChildObject("Baxter"), MockChildObject("Basil"), MockChildObject("Bob")]
 
 
 class TestApiGatewayTransform(TestCase):
@@ -50,7 +52,7 @@ class TestApiGatewayTransform(TestCase):
             'body': '"Bojo"'
         }, response)
 
-    def test_get_object(self):
+    def test_get_object_with_hidden(self):
         response = self.transform.call({
             'httpMethod': 'GET',
             'path': '/dog'
@@ -92,4 +94,38 @@ class TestApiGatewayTransform(TestCase):
         self.assertEqual({
             'statusCode': 200,
             'body': '{{"date": "{}", "datetime": "{}"}}'.format(date.today().isoformat(), datetime.now().isoformat(timespec='seconds'))
+        }, response)
+
+    def test_arrays(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/dogs'
+        })
+
+        self.assertEqual({
+            'statusCode': 200,
+            'body': '[{"name": "Baxter"}, {"name": "Basil"}, {"name": "Bob"}]'
+        }, response)
+
+
+    def test_no_such_key(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/dogs/3'
+        })
+
+        self.assertEqual({
+            'statusCode': 404,
+            'body': '"index out of bounds"'
+        }, response)
+
+    def test_string_key(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/dogs/string'
+        })
+
+        self.assertEqual({
+            'statusCode': 404,
+            'body': '"index must be integer"'
         }, response)

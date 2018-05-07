@@ -7,11 +7,16 @@ class ApiGatewayTransform:
 
     def call(self, event):
         path_steps = self.get_path_steps(event['path'])
-        response = self.call_path(path_steps, event, self.transform_object)
-        if response is not None:
-            return self.format_output(response)
-        else:
-            return self.format_output('No such resource', status_code=400)
+        try:
+            response = self.call_path(path_steps, event, self.transform_object)
+            if response is not None:
+                return self.format_output(response)
+            else:
+                return self.format_output('No such resource', status_code=400)
+        except IndexError:
+            return self.format_output('index out of bounds', status_code=404)
+        except ValueError as e:
+            return self.format_output('index must be integer', status_code=404)
 
     def get_path_steps(self, event_path):
         path_steps = event_path.split("/")[1:]
