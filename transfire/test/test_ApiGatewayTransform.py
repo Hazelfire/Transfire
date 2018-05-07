@@ -1,4 +1,3 @@
-from unittest import TestCase
 from transfire import ApiGatewayTransform
 import json
 from datetime import datetime, date
@@ -27,8 +26,8 @@ class MockObject:
         self.dict = {"key": "value"}
 
 
-class TestApiGatewayTransform(TestCase):
-    def setUp(self):
+class TestApiGatewayTransform:
+    def setup_method(self):
         self.transform = ApiGatewayTransform(MockObject())
 
     def test_get_paramaters(self):
@@ -37,10 +36,12 @@ class TestApiGatewayTransform(TestCase):
             'path': '/cats'
         })
 
-        self.assertEqual({
+        expected = {
             'statusCode': 200,
             'body': '3'
-        }, response)
+        }
+        
+        assert expected == response
 
     def test_recursive_get(self):
         response = self.transform.call({
@@ -48,10 +49,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/dog/name'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 200,
             'body': '"Bojo"'
-        }, response)
+        } == response
 
     def test_get_object_with_hidden(self):
         response = self.transform.call({
@@ -59,10 +60,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/dog'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 200,
             'body': '{"name": "Bojo"}'
-        }, response)
+        } == response
 
     def test_get_method(self):
         response = self.transform.call({
@@ -70,10 +71,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/dog/greeting'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 200,
             'body': '"Woof Woof Bojo"'
-        }, response)
+        } == response
 
     def test_no_such_path(self):
         response = self.transform.call({
@@ -81,10 +82,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/nosuchresource'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 400,
             'body': '"No such resource"'
-        }, response)
+        } == response
 
     def test_dates(self):
         response = self.transform.call({
@@ -92,10 +93,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/time'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 200,
             'body': '{{"date": "{}", "datetime": "{}"}}'.format(date.today().isoformat(), datetime.now().isoformat(timespec='seconds'))
-        }, response)
+        } == response
 
     def test_arrays(self):
         response = self.transform.call({
@@ -103,10 +104,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/dogs'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 200,
             'body': '[{"name": "Baxter"}, {"name": "Basil"}, {"name": "Bob"}]'
-        }, response)
+        } == response
 
 
     def test_no_such_key(self):
@@ -115,10 +116,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/dogs/3'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 404,
             'body': '"index out of bounds"'
-        }, response)
+        } == response
 
     def test_string_key(self):
         response = self.transform.call({
@@ -126,10 +127,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/dogs/string'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 404,
             'body': '"index must be integer"'
-        }, response)
+        } == response
 
     def test_get_dict_key(self):
         response = self.transform.call({
@@ -137,10 +138,10 @@ class TestApiGatewayTransform(TestCase):
             'path': '/dict/key'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 200,
             'body': '"value"'
-        }, response)
+        } == response
 
     def test_get_dict(self):
         response = self.transform.call({
@@ -148,7 +149,7 @@ class TestApiGatewayTransform(TestCase):
             'path': '/dict'
         })
 
-        self.assertEqual({
+        assert {
             'statusCode': 200,
             'body': '{"key": "value"}'
-        }, response)
+        } == response
