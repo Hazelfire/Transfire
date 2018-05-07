@@ -27,6 +27,12 @@ class MockObject:
         self.dogs = [MockChildObject("Baxter"), MockChildObject("Basil"), MockChildObject("Bob")]
         self.dict = {"key": "value"}
 
+    def method(self):
+        return "return"
+
+    def null(self):
+        pass
+
 
 class TestGetApiGatewayTransform:
     def setup_method(self):
@@ -42,7 +48,7 @@ class TestGetApiGatewayTransform:
             'statusCode': 200,
             'body': '3'
         }
-        
+
         assert expected == response
 
     def test_recursive_get(self):
@@ -156,6 +162,27 @@ class TestGetApiGatewayTransform:
             'body': '{"key": "value"}'
         } == response
 
+    def test_method(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/method'
+        })
+
+        assert response == {
+            'statusCode': 200,
+            'body': '"return"'
+        }
+
+    def test_no_return(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/null'
+        })
+
+        assert response == {
+            'statusCode': 204
+        }
+
 
 class TestApiGatewayTransform:
     def setup_method(self):
@@ -191,3 +218,4 @@ class TestPutApiGatewayTransform:
         }
 
         assert self.mock.cats == 2
+        
