@@ -24,6 +24,7 @@ class MockObject:
         self.dog = MockChildObject("Bojo")
         self.time = MockTimeObject()
         self.dogs = [MockChildObject("Baxter"), MockChildObject("Basil"), MockChildObject("Bob")]
+        self.dict = {"key": "value"}
 
 
 class TestApiGatewayTransform(TestCase):
@@ -128,4 +129,26 @@ class TestApiGatewayTransform(TestCase):
         self.assertEqual({
             'statusCode': 404,
             'body': '"index must be integer"'
+        }, response)
+
+    def test_get_dict_key(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/dict/key'
+        })
+
+        self.assertEqual({
+            'statusCode': 200,
+            'body': '"value"'
+        }, response)
+
+    def test_get_dict(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/dict'
+        })
+
+        self.assertEqual({
+            'statusCode': 200,
+            'body': '{"key": "value"}'
         }, response)
