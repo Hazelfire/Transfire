@@ -1,6 +1,7 @@
 from unittest import TestCase
 from transfire import ApiGatewayTransform
 import json
+from datetime import datetime, date
 
 
 class MockChildObject:
@@ -10,11 +11,17 @@ class MockChildObject:
     def greeting(self):
         return "Woof Woof " + self.name
 
+class MockTimeObject:
+    def __init__(self):
+        self.date = date.today()
+        self.datetime = datetime.now()
+        self.datetime = self.datetime.replace(microsecond=0)
 
 class MockObject:
     def __init__(self):
         self.cats = 3
         self.dog = MockChildObject("Bojo")
+        self.time = MockTimeObject()
 
 
 class TestApiGatewayTransform(TestCase):
@@ -54,17 +61,6 @@ class TestApiGatewayTransform(TestCase):
             'body': '{"name": "Bojo"}'
         }, response)
 
-    def test_get_root(self):
-        response = self.transform.call({
-            'httpMethod': 'GET',
-            'path': '/'
-        })
-
-        self.assertEqual({
-            'statusCode': 200,
-            'body': '{"cats": 3, "dog": {"name": "Bojo"}}'
-        }, response)
-
     def test_get_method(self):
         response = self.transform.call({
             'httpMethod': 'GET',
@@ -85,4 +81,15 @@ class TestApiGatewayTransform(TestCase):
         self.assertEqual({
             'statusCode': 400,
             'body': '"No such resource"'
+        }, response)
+
+    def test_dates(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/time'
+        })
+
+        self.assertEqual({
+            'statusCode': 200,
+            'body': '{{"date": "{}", "datetime": "{}"}}'.format(date.today().isoformat(), datetime.now().isoformat(timespec='seconds'))
         }, response)

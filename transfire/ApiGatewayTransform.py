@@ -1,4 +1,5 @@
 import json
+from datetime import date, datetime
 
 class ApiGatewayTransform:
     def __init__(self, transform_object):
@@ -62,5 +63,7 @@ class ApiGatewayTransform:
             return data
         elif isinstance(obj, list):
             return [self.todict(value) for value in obj]
+        elif isinstance(obj, date) or isinstance(obj, datetime):
+            return obj.isoformat()
         else:
             return obj
