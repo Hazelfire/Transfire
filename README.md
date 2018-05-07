@@ -1,5 +1,6 @@
 # Transfire
-Easilly turn your old python projects into microservices.
+[![Travis](https://travis-ci.org/Hazelfire/Transfire.svg?branch=master)](https://travis-ci.org/Hazelfire/Transfire)
+Easily turn your old python projects into microservices.
 
 How easy?
 
