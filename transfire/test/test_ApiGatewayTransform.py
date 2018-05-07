@@ -11,11 +11,13 @@ class MockChildObject:
     def greeting(self):
         return "Woof Woof " + self.name
 
+
 class MockTimeObject:
     def __init__(self):
         self.date = date.today()
         self.datetime = datetime.now()
         self.datetime = self.datetime.replace(microsecond=0)
+
 
 class MockObject:
     def __init__(self):
@@ -26,7 +28,7 @@ class MockObject:
         self.dict = {"key": "value"}
 
 
-class TestApiGatewayTransform:
+class TestGetApiGatewayTransform:
     def setup_method(self):
         self.transform = ApiGatewayTransform(MockObject())
 
@@ -84,7 +86,7 @@ class TestApiGatewayTransform:
 
         assert {
             'statusCode': 400,
-            'body': '"No such resource"'
+            'body': '"No such resource at nosuchresource"'
         } == response
 
     def test_dates(self):
@@ -153,3 +155,39 @@ class TestApiGatewayTransform:
             'statusCode': 200,
             'body': '{"key": "value"}'
         } == response
+
+
+class TestApiGatewayTransform:
+    def setup_method(self):
+        self.mock = MockObject()
+        self.transform = ApiGatewayTransform(self.mock)
+
+    def test_invalid_method(self):
+        response = self.transform.call({
+            'httpMethod': 'BREW',
+            'path': '/cats'
+        })
+
+        assert response == {
+            'statusCode': 400,
+            'body': '"No such method BREW for resource /cats"'
+        }
+
+
+class TestPutApiGatewayTransform:
+    def setup_method(self):
+        self.mock = MockObject()
+        self.transform = ApiGatewayTransform(self.mock)
+
+    def test_put_value(self):
+        response = self.transform.call({
+            'httpMethod': 'PUT',
+            'path': '/cats',
+            'body': '2'
+        })
+
+        assert response == {
+            'statusCode': 204
+        }
+
+        assert self.mock.cats == 2
