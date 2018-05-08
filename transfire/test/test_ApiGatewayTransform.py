@@ -1,5 +1,4 @@
 from transfire import ApiGatewayTransform
-import json
 from datetime import datetime, date
 
 
@@ -25,6 +24,7 @@ class MockObject:
         self.dog = MockChildObject("Bojo")
         self.time = MockTimeObject()
         self.dogs = [MockChildObject("Baxter"), MockChildObject("Basil"), MockChildObject("Bob")]
+        self.integers = [1, 2, 3]
         self.dict = {"key": "value"}
 
     def method(self):
@@ -137,8 +137,9 @@ class TestGetApiGatewayTransform:
 
         assert {
             'statusCode': 404,
-            'body': '"index must be integer"'
+            'body': '"invalid literal for int() with base 10: \'string\'"'
         } == response
+
 
     def test_get_dict_key(self):
         response = self.transform.call({
@@ -218,4 +219,44 @@ class TestPutApiGatewayTransform:
         }
 
         assert self.mock.cats == 2
-        
+    
+    def test_put_array(self):
+        response = self.transform.call({
+            'httpMethod': 'PUT',
+            'path': '/integers/2',
+            'body': '2'
+        })
+
+        assert response == {
+            'statusCode': 204
+        }
+
+        assert self.mock.integers == [1, 2, 2]
+
+    def test_put_method_invalid(self):
+        response = self.transform.call({
+            'httpMethod': 'PUT',
+            'path': '/method',
+            'body': '"value"'
+        })
+
+        assert response == {
+            'statusCode': 400,
+            'body': '"No such method PUT for resource /method"'
+        }
+
+        assert callable(self.mock.method)
+
+    def invalid_type(self):
+        response = self.transform.call({
+            'httpMethod': 'PUT',
+            'path': '/cats',
+            'body': '"2"'
+        })
+
+        assert response == {
+            'statusCode': 400,
+            'body': '"Cannot assign "2" of type str to cats of type int"'
+        }
+
+        assert self.mock.cats == 3  # Default
