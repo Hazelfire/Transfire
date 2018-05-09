@@ -86,7 +86,10 @@ class ApiGatewayTransform:
             object_part[int(key)] = value
         elif key in dir(object_part):
             if not callable(getattr(object_part, key)):
-                setattr(object_part, key, value)
+                try:
+                    setattr(object_part, key, value)
+                except:
+                    raise CannotSetResourceError(key)
                 print("or here")
             else:
                 print("got here")

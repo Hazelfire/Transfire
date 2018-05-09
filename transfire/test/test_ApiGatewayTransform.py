@@ -26,12 +26,26 @@ class MockObject:
         self.dogs = [MockChildObject("Baxter"), MockChildObject("Basil"), MockChildObject("Bob")]
         self.integers = [1, 2, 3]
         self.dict = {"key": "value"}
+        self.write_prop_value = 3
 
     def method(self):
         return "return"
 
     def null(self):
         pass
+
+    @property
+    def readproperty(self):
+        return self.cats + 1
+    
+    @property
+    def readwriteproperty(self):
+        return self.write_prop_value + 1
+
+    @readwriteproperty.setter
+    def readwriteproperty(self, value):
+        self.write_prop_value = value - 1
+
 
 
 class TestGetApiGatewayTransform:
@@ -246,6 +260,31 @@ class TestPutApiGatewayTransform:
         }
 
         assert callable(self.mock.method)
+
+    def test_put_property_invalid(self):
+        response = self.transform.call({
+            'httpMethod': 'PUT',
+            'path': '/readproperty',
+            'body': '5'
+        })
+
+        assert response == {
+            'statusCode': 400,
+            'body': '"No such method PUT for resource /readproperty"'
+        }
+
+    def test_calls_setter_on_put(self):
+        response = self.transform.call({
+            'httpMethod': 'PUT',
+            'path': '/readwriteproperty',
+            'body': '4'
+        })
+
+        assert response == {
+            'statusCode': 204
+        }
+
+        assert self.mock.write_prop_value == 3
 
     def invalid_type(self):
         response = self.transform.call({
