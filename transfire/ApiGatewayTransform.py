@@ -118,21 +118,19 @@ class Resource:
             return DictResource(obj, parent, key)
         elif callable(obj):
             return FunctionResource(obj, parent, key)
+        elif isinstance(key, str) and key in dir(parent.obj.__class__) and isinstance(getattr(parent.obj.__class__, key), property):
+            return PropertyResource(obj, parent, key)
         else:
             return ObjectResource(obj, parent, key)
 
     def call_method(self, event):
         method = event['httpMethod']
-        resource = self.get()
         if method.lower() not in dir(self):
             raise NoSuchMethodError(method, self.path)
         if method == 'GET':
-            return resource
+            return self.get()
         elif method == 'PUT':
-            try:
-                self.put(json.loads(event['body']))
-            except AttributeError:
-                raise NoSuchMethodError(method, self.path)
+            self.put(json.loads(event['body']))
         elif method == 'POST':
             pass            
 
@@ -187,3 +185,20 @@ class ObjectResource(Resource):
 
     def set(self, key, value):
         setattr(self.obj, key, value)
+
+class PropertyResource(Resource):
+    def __init__(self, obj, parent=None, key=""):
+        super(PropertyResource, self).__init__(obj, parent, key)
+
+        if getattr(self.parent.obj.__class__, self.key).fset is not None:
+            self.put = self._put
+
+
+    def child(self, name):
+        return NoSuchResourceError(name)
+
+    def get(self):
+        return self.obj
+
+    def _put(self, value):
+        return self.parent.set(self.key, value)
