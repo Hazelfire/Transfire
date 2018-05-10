@@ -105,9 +105,20 @@ class TestGetApiGatewayTransform:
         })
 
         assert {
-            'statusCode': 400,
+            'statusCode': 404,
             'body': '"No such resource at nosuchresource"'
         } == response
+
+    def test_no_such_path_multiple(self):
+        response = self.transform.call({
+            'httpMethod': 'GET',
+            'path': '/nosource1/nosource2'
+        })
+
+        assert response == {
+            'statusCode': 404,
+            'body': '"No such resource at nosource1"'
+        }
 
     def test_dates(self):
         response = self.transform.call({
@@ -140,7 +151,7 @@ class TestGetApiGatewayTransform:
 
         assert {
             'statusCode': 404,
-            'body': '"index out of bounds"'
+            'body': '"No such resource at 3"'
         } == response
 
     def test_string_key(self):
@@ -151,7 +162,7 @@ class TestGetApiGatewayTransform:
 
         assert {
             'statusCode': 404,
-            'body': '"invalid literal for int() with base 10: \'string\'"'
+            'body': '"No such resource at string"'
         } == response
 
 
