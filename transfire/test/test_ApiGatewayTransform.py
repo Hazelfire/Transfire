@@ -1,5 +1,6 @@
 from transfire import ApiGatewayTransform
 from datetime import datetime, date
+from typing import List
 
 
 class MockChildObject:
@@ -19,6 +20,8 @@ class MockTimeObject:
 
 
 class MockObject:
+    dogs: List[MockChildObject] = []
+
     def __init__(self):
         self.cats = 3
         self.dog = MockChildObject("Bojo")
@@ -310,3 +313,23 @@ class TestPutApiGatewayTransform:
         }
 
         assert self.mock.cats == 3  # Default
+
+
+class TestPostApiGatewayTransform:
+    def setup_method(self):
+        self.mock = MockObject()
+        self.transform = ApiGatewayTransform(self.mock)
+
+    def test_post_object(self):
+        response = self.transform.call({
+            'httpMethod': 'POST',
+            'path': '/dogs',
+            'body': '{"name": "Barney"}'
+        })
+
+        assert response == {
+            'statusCode': 204
+        }
+
+        assert len(self.mock.dogs) == 4
+        assert self.mock.dogs[3].name == "Barney"

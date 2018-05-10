@@ -1,5 +1,7 @@
 import json
 from datetime import date, datetime
+from typing import get_type_hints, List
+from inspect import signature
 
 
 class NoSuchMethodError(Exception):
@@ -22,18 +24,13 @@ class CannotSetResourceError(Exception):
             '"{}" cannot be set'.format(path)
         )
 
-class ResourceIndexError(Exception):
+
+class IncorrectConstructorParametersError(Exception):
     def __init__(self):
-        super(ResourceIndexError, self).__init__(
-            'index out of bounds'
+        super(IncorrectConstructorParametersError, self).__init__(
+            "Could not create object with given parameters"
         )
 
-
-class ResourceValueError(Exception):
-    def __init__(self, value_error):
-        super(ResourceValueError, self).__init__(
-            str(value_error)
-        )
 
 
 class ApiGatewayTransform:
@@ -47,6 +44,8 @@ class ApiGatewayTransform:
             return self.format_output(str(e), status_code=400)
         except NoSuchResourceError as e:
             return self.format_output(str(e), status_code=404)
+        except IncorrectConstructorParametersError as e:
+            return self.format_output(str(e), status_code=400)
 
     def get_response(self, event):
         path_steps = self.get_path_steps(event['path'])
@@ -125,17 +124,39 @@ class Resource:
 
     def call_method(self, event):
         method = event['httpMethod']
-        if method.lower() not in dir(self):
-            raise NoSuchMethodError(method, self.path)
         if method == 'GET':
             return self.get()
         elif method == 'PUT':
             self.put(json.loads(event['body']))
         elif method == 'POST':
-            pass            
+            self.post(json.loads(event['body'])) # Assumes valid JSON. Bug
+        else:
+            raise NoSuchMethodError(method, self.path)
+
+    def get(self):
+        raise NoSuchMethodError('GET', self.path)
+
+    def put(self, value):
+        raise NoSuchMethodError('PUT', self.path)
+
+    def post(self, value):
+        raise NoSuchMethodError('POST', self.path)
 
 
 class ListResource(Resource):
+    def __init__(self, obj, parent=None, key=""):
+        super(ListResource, self).__init__(obj, parent, key)
+
+        # Bug, assumes root is not list
+        annotations = get_type_hints(self.parent.obj)
+        has_annotation = key in annotations
+        if has_annotation:
+            annotation = annotations[key]
+            if issubclass(annotation, list):
+                self.type = annotation.__args__[0]
+                self.post = self._post
+
+
     def child(self, name):
         try:
             return Resource.create_resource(self.obj[int(name)], self, int(name))
@@ -152,6 +173,21 @@ class ListResource(Resource):
 
     def set(self, key, value):
         self.obj[key] = value
+
+    def call_constructor(self, args):
+        try:
+            return self.type(**args)
+        except TypeError as e:
+            print(e)
+            raise IncorrectConstructorParametersError()
+
+    def _post(self, value):
+        if isinstance(value, self.type):
+            self.obj.append(value)
+        elif isinstance(value, dict):
+            item = self.call_constructor(value)
+            self.obj.append(item)
+
 
 class DictResource(Resource):
     def child(self, name):
