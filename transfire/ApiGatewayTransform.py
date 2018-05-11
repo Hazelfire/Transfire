@@ -138,6 +138,8 @@ class Resource:
             self.put(json.loads(event['body']))
         elif method == 'POST':
             self.post(json.loads(event['body'])) # Assumes valid JSON. Bug
+        elif method == 'DELETE':
+            self.delete()
         else:
             raise NoSuchMethodError(method, self.path)
 
@@ -149,6 +151,12 @@ class Resource:
 
     def post(self, value):
         raise NoSuchMethodError('POST', self.path)
+
+    def delete(self):
+        if isinstance(self.parent, ListResource) and not self.parent.immutable():
+            self.parent.remove(self.key)
+        else:
+            raise NoSuchMethodError('DELETE', self.path)
 
 
 class ListResource(Resource):
@@ -162,6 +170,7 @@ class ListResource(Resource):
             annotation = annotations[key]
             if issubclass(annotation, list):
                 self.type = annotation.__args__[0]
+                print("Not Immutable")
                 self.post = self._post
 
 
@@ -195,6 +204,13 @@ class ListResource(Resource):
         elif isinstance(value, dict):
             item = self.call_constructor(value)
             self.obj.append(item)
+
+    def immutable(self):
+        return 'type' not in dir(self)
+
+    def remove(self, key):
+        del self.obj[key]
+        
 
 
 class DictResource(Resource):

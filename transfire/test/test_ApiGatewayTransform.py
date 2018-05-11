@@ -315,7 +315,7 @@ class TestPutApiGatewayTransform:
         assert self.mock.cats == 3  # Default
 
 
-class TestPostApiGatewayTransform:
+class TestPostDeleteApiGatewayTransform:
     def setup_method(self):
         self.mock = MockObject()
         self.transform = ApiGatewayTransform(self.mock)
@@ -333,6 +333,17 @@ class TestPostApiGatewayTransform:
 
         assert len(self.mock.dogs) == 4
         assert self.mock.dogs[3].name == "Barney"
+
+        delete_response = self.transform.call({
+            'httpMethod': 'DELETE',
+            'path': '/dogs/2'
+        })
+
+        assert delete_response == {
+            'statusCode': 204
+        }
+
+        assert len(self.mock.dogs) == 3
 
     def test_post_object_missing_param(self):
         response = self.transform.call({
@@ -370,4 +381,14 @@ class TestPostApiGatewayTransform:
         assert response == {
             'statusCode': 400,
             'body': '"No such method POST for resource /integers"'
+        }
+
+        delete_response = self.transform.call({
+            'httpMethod': 'DELETE',
+            'path': '/integers/0'
+        })
+
+        assert delete_response == {
+            'statusCode': 400,
+            'body': '"No such method DELETE for resource /integers/0"'
         }
