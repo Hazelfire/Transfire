@@ -333,3 +333,41 @@ class TestPostApiGatewayTransform:
 
         assert len(self.mock.dogs) == 4
         assert self.mock.dogs[3].name == "Barney"
+
+    def test_post_object_missing_param(self):
+        response = self.transform.call({
+            'httpMethod': 'POST',
+            'path': '/dogs',
+            'body': '{}'
+        })
+
+        assert response == {
+            'statusCode': 400,
+            'body': '"Could not create object with given parameters"'
+        }
+
+
+    def test_post_object_extra_params(self):
+        response = self.transform.call({
+            'httpMethod': 'POST',
+            'path': '/dogs',
+            'body': '{"name": "Barney", "feet": 4}'
+        })
+
+
+        assert response == {
+            'statusCode': 400,
+            'body': '"Could not create object with given parameters"'
+        }
+
+    def test_post_object_no_annotations(self):
+        response = self.transform.call({
+            'httpMethod': 'POST',
+            'path': '/integers',
+            'body': '4'
+        })
+
+        assert response == {
+            'statusCode': 400,
+            'body': '"No such method POST for resource /integers"'
+        }
