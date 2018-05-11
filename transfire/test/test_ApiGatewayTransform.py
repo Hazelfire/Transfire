@@ -300,7 +300,7 @@ class TestPutApiGatewayTransform:
 
         assert self.mock.write_prop_value == 3
 
-    def invalid_type(self):
+    def test_invalid_type(self):
         response = self.transform.call({
             'httpMethod': 'PUT',
             'path': '/cats',
@@ -309,7 +309,7 @@ class TestPutApiGatewayTransform:
 
         assert response == {
             'statusCode': 400,
-            'body': '"Cannot assign "2" of type str to cats of type int"'
+            'body': '"Cannot assign \\"2\\" of type str to /cats of type int"'
         }
 
         assert self.mock.cats == 3  # Default

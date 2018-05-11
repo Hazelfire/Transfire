@@ -32,6 +32,12 @@ class IncorrectConstructorParametersError(Exception):
         )
 
 
+class InvalidTypeError(Exception):
+    def __init__(self, value, resource, resource_type):
+        super(InvalidTypeError, self).__init__(
+               'Cannot assign {} of type {} to {} of type {}'.format(json.dumps(value), type(value).__name__, resource, resource_type.__name__)
+        )
+
 
 class ApiGatewayTransform:
     def __init__(self, transform_object):
@@ -45,6 +51,8 @@ class ApiGatewayTransform:
         except NoSuchResourceError as e:
             return self.format_output(str(e), status_code=404)
         except IncorrectConstructorParametersError as e:
+            return self.format_output(str(e), status_code=400)
+        except InvalidTypeError as e:
             return self.format_output(str(e), status_code=400)
 
     def get_response(self, event):
@@ -217,7 +225,11 @@ class ObjectResource(Resource):
         return self.obj
 
     def put(self, value):
-        self.parent.set(self.key, value)
+        if isinstance(value, type(self.obj)):
+            self.parent.set(self.key, value)
+        else:
+            raise InvalidTypeError(value, self.path, type(self.obj))
+
 
     def set(self, key, value):
         setattr(self.obj, key, value)
